@@ -236,6 +236,14 @@ class StandardiseMetadata(BasePlugin):
 
         cube.cell_methods = updated_cms
 
+    @staticmethod
+    def _remove_long_name_if_standard_name_present(cube: Cube) -> None:
+        """
+        Remove long_name if standard_name is present
+        """
+        if cube.standard_name and cube.long_name:
+            cube.long_name = None
+    
     def process(self, cube: Cube) -> Cube:
         """
         Perform compulsory and user-configurable metadata adjustments.  The

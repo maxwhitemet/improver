@@ -292,6 +292,18 @@ class Test_process(IrisTest):
         self.assertArrayEqual(result.data, target.data)
         self.assertEqual(result.coords(), target.coords())
 
+    
+    def test_remove_long_name_if_standard_name_present(self):
+        """
+        Test that if a coordinate has both a standard_name and a long_name,
+        the long_name is removed.
+        """
+        cube = self.cube.copy()
+        # adding a name in case the testing cube doesn't have one to test with
+        cube.long_name = "kittens"
+        print('long_name before test: ' + cube.long_name)
+        StandardiseMetadata()._remove_long_name_if_standard_name_present(cube)
+        self.assertIsNone(cube.long_name)
 
 if __name__ == "__main__":
     unittest.main()
