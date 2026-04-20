@@ -17,7 +17,6 @@ def process(
     ssft_generate_params: str = None,
     db_threshold: float = 0.03,
     db_threshold_units: str = "mm/hr",
-    num_workers: int = None,
     scale_non_positive_noise=False,
 ):
     """
@@ -37,6 +36,16 @@ def process(
     break ties in these non-positive regions, more realistic spatial structures can be
     generated in the final ECC-Q realizations, while still respecting the calibrated
     probabilities.
+
+    While this plugin accepts any cube with "x" and "y" dimensions, it is
+    recommended to first slice the cube over the realization dimension and
+    parallelize the processing of individual realizations using the plugin on each
+    slice, to improve performance. This extraction and later merging of realization
+    slices can be easily achieved using the improver CLI `extract` and
+    `merge` functionality, respectively.
+
+
+    See Pysteps documentation for further keyword arguments.
 
     Args:
         input_cube:
@@ -64,10 +73,6 @@ def process(
             Default is 0.03 mm/hr.
         db_threshold_units:
             Units of the db_threshold value. Default is "mm/hr".
-        num_workers:
-            Number of worker threads for parallel FFT computation.
-            If not specified, uses the smaller of the plugin's default (number of
-            available CPUs) or the number of realizations in the input cube.
         scale_non_positive_noise:
             If True, noise in non-positive regions (where template.data <= 0) will be
             scaled such that the maximum noise value in those regions is zero and all
@@ -78,8 +83,6 @@ def process(
 
     Returns:
         Cube with added stochastic noise.
-
-    See Pysteps documentation for further keyword arguments.
     """
     import ast
 
@@ -102,8 +105,6 @@ def process(
         "db_threshold_units": db_threshold_units,
         "scale_non_positive_noise": scale_non_positive_noise,
     }
-    if num_workers is not None:
-        plugin_kwargs["num_workers"] = num_workers
 
     plugin = StochasticNoise(**plugin_kwargs)
 
