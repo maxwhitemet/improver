@@ -139,7 +139,8 @@ def test_process(
             dtype=np.float32,
         )
 
-    result = plugin.process(cube)
+    with pytest.warns(UserWarning, match="multi-realization dimension"):
+        result = plugin.process(cube)
 
     if test_case == "with_zero_values":
         # Use allclose for floating point comparisons
@@ -176,7 +177,8 @@ def test_scale_non_positive_noise():
     )
     cube = set_up_variable_cube(data=data, name="precipitation_rate", units="mm/hr")
 
-    result = plugin.process(cube)
+    with pytest.warns(UserWarning, match="multi-realization dimension"):
+        result = plugin.process(cube)
 
     # Non-zero values should remain unchanged
     non_zero_mask = data > 0
@@ -215,31 +217,6 @@ def test_process_scalar_realization_coord():
 
     assert isinstance(result, Cube)
     assert result.shape == single_realization_cube.shape
-
-
-def test_process_multirealization_warns():
-    """Test multi-realization inputs are supported via slice iteration."""
-    plugin = StochasticNoise(
-        ssft_init_params={"domain_size": [2, 2], "overlap": 0},
-        ssft_generate_params={"seed": 0},
-        db_threshold=0.03,
-        db_threshold_units="mm/hr",
-    )
-
-    data = np.array(
-        [
-            [[0.0, 3.0], [0.0, 4.0]],
-            [[0.0, 3.2], [0.0, 4.2]],
-        ],
-        dtype=np.float32,
-    )
-    cube = set_up_variable_cube(data=data, name="precipitation_rate", units="mm/hr")
-
-    with pytest.warns(UserWarning, match="multi-realization dimension"):
-        result = plugin.process(cube)
-
-    assert isinstance(result, Cube)
-    assert result.shape == cube.shape
 
 
 def test_non_positive_threshold():
